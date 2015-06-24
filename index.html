@@ -1,0 +1,31 @@
+<head>
+  <title>Meteor簡易聊天室</title>
+</head>
+
+<body>
+  <!-- 聊天室輸入框 -->
+  {{> chat_input}}
+  <!-- 聊天紀錄 -->
+  {{> chat_message}}
+</body>
+
+<!-- 聊天室輸入框 -->
+<template name="chat_input">
+  <form id="chat_input">
+    {{userName}}：<input type="text" name="message" /> <input type="submit" value="發言" />
+  </form>
+</template>
+
+<!-- 聊天紀錄 -->
+<template name="chat_message">
+  <ul id="chat_message">
+    {{#each message}}
+      <li>
+        <span>({{formatDateTime this.time}})</span>
+        <span>{{this.speaker}}</span>
+        <span>：</span>
+        <span>{{this.message}}</span>
+      </li>
+    {{/each}}
+  </ul>
+</template>
