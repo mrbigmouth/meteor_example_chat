@@ -1,6 +1,6 @@
+//宣告訊息紀錄Collection
+var messageList = new Meteor.Collection('messageList');
 if (Meteor.isClient) {
-  //訊息紀錄
-  var messageList = new ReactiveVar([]);
   //使用者暱稱預設為無名氏
   var userName = new ReactiveVar('無名氏');
   //當Meteor啟動時，詢問使用者暱稱
@@ -21,14 +21,12 @@ if (Meteor.isClient) {
     'submit': function(e, ins) {
       var form = ins.firstNode;
       var message = {};
-      var newMessageList = messageList.get();
       message.speaker = userName.get();
       message.message = form.message.value;
       message.time = new Date();
 
-      //將最新發言置入訊息列最前方
-      newMessageList.unshift(message);
-      messageList.set( newMessageList );
+      //將發言置入messageList Collection中
+      messageList.insert( message );
 
       //發完言後把輸入框裡的值清空
       form.message.value = '';
@@ -40,10 +38,10 @@ if (Meteor.isClient) {
   //設定chat_message的helper
   Template.chat_message.helpers({
     message: function() {
-      return messageList.get();
+      return messageList.find({}, {sort: {time: -1}});
     },
-    formatDateTime: function(date) {
-      return date.toLocaleString();
+    formatDateTime: function(dateTime) {
+      return dateTime.toLocaleString();
     }
   })
 }
