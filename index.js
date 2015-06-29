@@ -1,6 +1,6 @@
 //宣告訊息紀錄Collection
 messageList = new Meteor.Collection('messageList');
-//建立insertMessage這個伺服器端與使用者端通用的方法
+//建立addMessage這個伺服器端與使用者端通用的方法
 Meteor.methods({
   addMessage: function(speaker, messageText) {
       var message = {};
