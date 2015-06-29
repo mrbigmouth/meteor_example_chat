@@ -1,5 +1,17 @@
 //宣告訊息紀錄Collection
-var messageList = new Meteor.Collection('messageList');
+messageList = new Meteor.Collection('messageList');
+//建立insertMessage這個伺服器端與使用者端通用的方法
+Meteor.methods({
+  addMessage: function(speaker, messageText) {
+      var message = {};
+      message.speaker = speaker;
+      message.message = messageText;
+      message.time = new Date();
+      //將發言置入messageList Collection中
+      messageList.insert( message );
+  }
+});
+
 if (Meteor.isClient) {
   //使用者暱稱預設為無名氏
   var userName = new ReactiveVar('無名氏');
@@ -20,14 +32,8 @@ if (Meteor.isClient) {
   Template.chat_input.events({
     'submit': function(e, ins) {
       var form = ins.firstNode;
-      var message = {};
-      message.speaker = userName.get();
-      message.message = form.message.value;
-      message.time = new Date();
-
-      //將發言置入messageList Collection中
-      messageList.insert( message );
-
+      //呼叫insertMessage方法
+      Meteor.call('addMessage', userName.get(), form.message.value);
       //發完言後把輸入框裡的值清空
       form.message.value = '';
       //防止表單的預設送出動作
