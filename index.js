@@ -32,7 +32,7 @@ if (Meteor.isClient) {
   Template.chat_input.events({
     'submit': function(e, ins) {
       var form = ins.firstNode;
-      //呼叫insertMessage方法
+      //呼叫addMessage方法
       Meteor.call('addMessage', userName.get(), form.message.value);
       //發完言後把輸入框裡的值清空
       form.message.value = '';
