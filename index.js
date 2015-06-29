@@ -6,7 +6,15 @@ Meteor.methods({
       var message = {};
       message.speaker = speaker;
       message.message = messageText;
-      message.time = new Date();
+      //在使用者端執行的時候，時間自動視為最新message的時間+1秒
+      if (Meteor.isClient) {
+        message.time = messageList.findOne({}, {sort: {time: -1}}).time;
+        message.time.setSeconds( message.time.getSeconds() + 1 );
+      }
+      //在伺服器端執行的時候，時間設定為當前系統時間
+      else {
+        message.time = new Date();
+      }
       //將發言置入messageList Collection中
       messageList.insert( message );
   }
