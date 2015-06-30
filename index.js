@@ -4,6 +4,7 @@ messageList = new Meteor.Collection('messageList');
 Meteor.methods({
   addMessage: function(speaker, messageText) {
       var message = {};
+      var lastMessage;
       //防止惡意操作的型別檢查
       if (Meteor.isServer) {
         check(speaker, String);
@@ -19,8 +20,14 @@ Meteor.methods({
       message.message = messageText;
       //在使用者端執行的時候，時間自動視為最新message的時間+1秒
       if (Meteor.isClient) {
-        message.time = messageList.findOne({}, {sort: {time: -1}}).time;
-        message.time.setSeconds( message.time.getSeconds() + 1 );
+        lastMessage = messageList.findOne({}, {sort: {time: -1}});
+        if (lastMessage) {
+          message.time = messageList.findOne({}, {sort: {time: -1}}).time;
+          message.time.setSeconds( message.time.getSeconds() + 1 );
+        }
+        else {
+          message.time = new Date();
+        }
       }
       //在伺服器端執行的時候，時間設定為當前系統時間
       else {
