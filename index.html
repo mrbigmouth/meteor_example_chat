@@ -3,7 +3,7 @@
 </head>
 
 <body>
-  <!-- 聊天室輸入框 -->
+  <!-- 聊天室輸入框、登入按鈕 -->
   {{> chat_input}}
   <!-- 聊天紀錄 -->
   {{> chat_message}}
@@ -12,7 +12,22 @@
 <!-- 聊天室輸入框 -->
 <template name="chat_input">
   <form id="chat_input">
-    {{userName}}：<input type="text" name="message" /> <input type="submit" value="發言" />
+    {{#if currentUser}}
+      <div>
+        <!-- 登出按鈕 -->
+        {{> loginButtons}}
+        暱稱：{{getUserNickName currentUser._id}}
+        <button type="button">修改暱稱</button>
+      </div>
+      <div>
+        <input type="text" name="message" /> <input type="submit" value="送出訊息" />
+      </div>
+    {{else}}
+      <div>
+        <!-- 登入按鈕 -->
+        請先登入：{{> loginButtons}}
+      </div>
+    {{/if}}
   </form>
 </template>
 
@@ -22,7 +37,7 @@
     {{#each message}}
       <li>
         <span>({{formatDateTime this.time}})</span>
-        <span>{{this.speaker}}</span>
+        <span>{{getUserNickName this.user}}</span>
         <span>：</span>
         <span>{{this.message}}</span>
       </li>

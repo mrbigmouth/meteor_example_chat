@@ -8,3 +8,6 @@ meteor-platform
 autopublish
 insecure
 reactive-var
+accounts-base
+accounts-password
+accounts-ui
