@@ -46,6 +46,10 @@ if (Meteor.isServer) {
     //只有發言人自己在發言時間未滿一分鐘的情況下才可以修改發言內容
     update: function(userId, message, fields, modifier) {
       if (userId === message.user && fields === 'message' && Date.now() - message.time.getTime() < 60000) {
+        check(modifier, String);
+        if (modifier.length < 1 || modifier > 255) {
+          throw new Meteor.Error(403, '發言內容不合法', '發言內容應至少一個字元，至多兩百五十五個字元！');
+        }
         return true;
       }
       return false;
@@ -56,26 +60,38 @@ if (Meteor.isServer) {
     }
   });
 
-  //發布所有聊天訊息
-  Meteor.publish('allMessage', function() {
-    //發布所有messageList資料集合內的訊息
-    return messageList.find();
-  });
 
-  //發布所有「已發言者」的暱稱資料
-  Meteor.publish('speakerNickName', function() {
-    //從所有訊息中取得所有已發言人
-    var alreadySpeaker = messageList.find().map(function(message) {
+
+  //發布有限數量的聊天訊息
+  Meteor.publish('limitMessage', function(viewMessageNumber) {
+    var viewMessage;
+    var speakerInViewMessage;
+    var speakerNickName;
+    //viewMessageNumber只允許整數
+    check(viewMessageNumber, Match.Integer);
+    //發布messageList資料集合內最新viewMessageNumber筆的訊息
+    viewMessage = messageList.find(
+      {},
+      {
+        //依訊息時間遞減排序
+        sort: {
+          time: -1
+        },
+        //只取前viewMessageNumber筆的訊息
+        limit: viewMessageNumber
+      }
+    );
+    //從訂閱的訊息中取得所有已發言人
+    speakerInViewMessage = viewMessage.map(function(message) {
       return message.user;
     });
     //去除重複的發言者
-    alreadySpeaker = _.uniq(alreadySpeaker);
-
-    //發布所有已發言人的暱稱資料
-    return Meteor.users.find(
+    speakerInViewMessage = _.uniq(speakerInViewMessage);
+    //許得所有發言人的暱稱資料
+    var speakerNickName = Meteor.users.find(
       {
         _id: {
-          $in: alreadySpeaker
+          $in: speakerInViewMessage
         }
       },
       {
@@ -84,11 +100,14 @@ if (Meteor.isServer) {
         }
       }
     );
+    //發布所有訂閱的訊息與發言人的暱稱資料
+    return [viewMessage, speakerNickName];
   });
 }
 else {
-  //訂閱所有聊天訊息
-  Meteor.subscribe('allMessage');
-  //訂閱所有已發言人的暱稱資料
-  Meteor.subscribe('speakerNickName');
+  //訂閱有限數量的聊天訊息  預設50筆
+  Session.setDefault('viewMessageNumber', 50);
+  Tracker.autorun(function() {
+    Meteor.subscribe('limitMessage', Session.get('viewMessageNumber'));
+  });
 }
