@@ -21,6 +21,10 @@
       </div>
       <div>
         <input type="text" name="message" /> <input type="submit" value="送出訊息" />
+        <span style="float: right;">
+          設定可見訊息數：
+          <input type="number" name="viewMessageNumber" value="{{viewMessageNumber}}" style="width:50px;" />
+        </span>
       </div>
     {{else}}
       <div>
@@ -35,11 +39,19 @@
 <template name="chat_message">
   <ul id="chat_message">
     {{#each message}}
-      <li>
+      <li style="height: 30px;">
         <span>({{formatDateTime this.time}})</span>
+        {{#if this.updateTime}}
+          <span style="color: red;">(修改時間：{{formatDateTime this.updateTime}})</span>
+        {{/if}}
         <span>{{getUserNickName this.user}}</span>
         <span>：</span>
         <span>{{this.message}}</span>
+        {{#if canEdit}}
+          <span style="float: right">
+            <button type="button">修改</button>
+          </span>
+        {{/if}}
       </li>
     {{/each}}
   </ul>

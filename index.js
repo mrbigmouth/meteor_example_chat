@@ -11,9 +11,15 @@ if (Meteor.isClient) {
     return userNickName;
   });
 
+  //顯示可見訊息數
+  Template.chat_input.helpers({
+    viewMessageNumber: function() {
+      return Session.get('viewMessageNumber');
+    }
+  });
   Template.chat_input.events({
     //設定使用者暱稱
-    'click button': function(e, ins) {
+    'click button': function() {
       var userNickName = prompt('請輸入新的暱稱:');
       if (userNickName.length > 20 || userNickName < 1) {
         alert('使用者暱稱不可為空白、長度不可超過二十個字元！')
@@ -27,6 +33,18 @@ if (Meteor.isClient) {
           }
         }
       });
+    },
+    //設定所見訊息數
+    'change input[type="number"]': function(e) {
+      var value = e.currentTarget.value;
+      var viewMessageNumber = parseInt(value, 10);
+      //只有可以正確轉為整數的字串才可以設定為viewMessageNumber
+      if ('' + viewMessageNumber === value) {
+        Session.set('viewMessageNumber', viewMessageNumber);
+      }
+      else {
+        return false;
+      }
     },
     //處理註冊使用者發言
     'submit': function(e, ins) {
@@ -51,6 +69,24 @@ if (Meteor.isClient) {
     },
     formatDateTime: function(dateTime) {
       return dateTime.toLocaleString();
+    },
+    canEdit: function() {
+      return this.user === Meteor.userId();
     }
-  })
+  });
+  Template.chat_message.events({
+    'click button': function(e, ins) {
+      var originMessageText = this.message;
+      var newMessageText = prompt('修改新訊息', originMessageText);
+      messageList.update(this._id, {
+        $set: {
+          message: newMessageText
+        }
+      }, function(error) {
+        if (error) {
+          alert(error.reason + '\n' + error.details);
+        }
+      });
+    }
+  });
 }
