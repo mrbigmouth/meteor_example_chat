@@ -50,6 +50,12 @@ if (Meteor.isServer) {
         if (modifier.length < 1 || modifier > 255) {
           throw new Meteor.Error(403, '發言內容不合法', '發言內容應至少一個字元，至多兩百五十五個字元！');
         }
+        //確認修改後，在訊息內容中加入修改時間
+        messageList.update(message._id, {
+          $set: {
+            updateTime: new Date()
+          }
+        });
         return true;
       }
       return false;
