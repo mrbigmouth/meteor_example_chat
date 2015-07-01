@@ -45,20 +45,30 @@ if (Meteor.isServer) {
     },
     //只有發言人自己在發言時間未滿一分鐘的情況下才可以修改發言內容
     update: function(userId, message, fields, modifier) {
-      if (userId === message.user && fields === 'message' && Date.now() - message.time.getTime() < 60000) {
-        check(modifier, String);
-        if (modifier.length < 1 || modifier > 255) {
-          throw new Meteor.Error(403, '發言內容不合法', '發言內容應至少一個字元，至多兩百五十五個字元！');
+      //修改內容只能有message欄位，且內容為字串
+      check(modifier, {
+        $set: {
+          message: String
         }
-        //確認修改後，在訊息內容中加入修改時間
-        messageList.update(message._id, {
-          $set: {
-            updateTime: new Date()
-          }
-        });
-        return true;
+      });
+      //只有發言人自己才能修改發言內容
+      if (userId !== message.user) {
+        return false;
       }
-      return false;
+      //新發言內容長度必須合法
+      if (modifier.length < 1 || modifier > 255) {
+        throw new Meteor.Error(403, '發言內容不合法', '發言內容應至少一個字元，至多兩百五十五個字元！');
+      }
+      //要修改發言內容，只能在發言後的一分鐘內修改。
+      if ( Date.now() - message.time.getTime() > 60000) {
+        throw new Meteor.Error(403, '修改時間已過', '你只能在發言後的一分鐘之內修改發言內容！');
+      }
+      messageList.update(message._id, {
+        $set: {
+          updateTime: new Date()
+        }
+      });
+      return true;
     },
     //所有人都不允許刪除messageList裡面的資料
     remove: function() {
